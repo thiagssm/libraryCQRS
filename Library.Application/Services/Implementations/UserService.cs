@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Library.Application.Services.Implementations
 {
-    internal class UserService:IUserService
+    public class UserService:IUserService
     {
         LibraryDbContext _dbContext;
         public UserService(LibraryDbContext libraryDbContext)
@@ -27,6 +27,7 @@ namespace Library.Application.Services.Implementations
                 );
 
             _dbContext.Users.Add(user);
+            _dbContext.SaveChanges();
 
             return user.Id;
         }
@@ -35,6 +36,7 @@ namespace Library.Application.Services.Implementations
         {
             var user = _dbContext.Users.SingleOrDefault(u => u.Id == id);
             user.Desativar();
+            _dbContext.SaveChanges();
         }
 
         public List<UserViewModel> GetAll()
@@ -71,7 +73,8 @@ namespace Library.Application.Services.Implementations
         public void Update(UpdateUserInputModel model)
         {
             var user = _dbContext.Users.SingleOrDefault(u => u.Id == model.Id);
-            user.Update(model.Name, model.Email, model.Password);
+            user.Update(model.Name, model.Email, model.Password, model.Ativo);
+            _dbContext.SaveChanges();
         }
     }
 }

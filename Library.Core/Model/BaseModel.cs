@@ -11,8 +11,8 @@ namespace Library.Core.Model
     {
         protected BaseModel() { }
         public int Id { get; private set; }
-        public bool Ativo { get; private set; }
-        public DateTime CreationDate { get; private set; }
+        public bool Ativo { get; set; }
+        public DateTime CreationDate { get; set; }
 
         public void Desativar() { Ativo = false; }
     }

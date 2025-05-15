@@ -1,12 +1,12 @@
-﻿using System.Reflection;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 
 namespace Library.Core.Model
 {
     public class Book : BaseModel
     {
-        public Book(int id, string title, string description, string author, string iSBN, string publisher, string category, int publicationYear, int pageCount, string coverImage)
+        public Book(string title, string description, string author, string iSBN, string publisher, string category, int publicationYear, int pageCount, string coverImage)
         {
-            Id = id;
             Title = title;
             Description = description;
             Author = author;
@@ -16,9 +16,10 @@ namespace Library.Core.Model
             PublicationYear = publicationYear;
             PageCount = pageCount;
             CoverImage = coverImage;
-
             AverageRating = 0;
             Ratings = new List<Rating>();
+            Ativo = true;
+            CreationDate = DateTime.Now;
         }
 
         public int Id { get; private set; }
@@ -35,10 +36,49 @@ namespace Library.Core.Model
         public decimal AverageRating { get; private set; }
         public List<Rating> Ratings { get; private set; }
 
-        public void Update(string title,string category)
+        public void Update(string? title, string? description, string? author, string? isbn, string? publisher, string? category, int? publicationYear, int? pageCount, bool? ativo)
         {
-            Title = title;
-            Category = category;
+            if (!string.IsNullOrEmpty(title))
+            {
+                Title = title;
+            }
+            if (!string.IsNullOrEmpty(description))
+            {
+                Description = description;
+            }
+            if (!string.IsNullOrEmpty(author))
+            {
+                Author = author;
+            }
+            if (!string.IsNullOrEmpty(isbn))
+            {
+                ISBN = isbn;
+            }
+            if (!string.IsNullOrEmpty(publisher))
+            {
+                Publisher = publisher;
+            }
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                Category = category;
+            }
+
+            if (publicationYear.HasValue)
+            {
+                PublicationYear = publicationYear.Value;
+            }
+
+            if (pageCount.HasValue)
+            {
+                PageCount = pageCount.Value;
+            }
+
+            if (ativo.HasValue)
+            {
+                Ativo = ativo.Value;
+            }
+
         }
 
         public void PopulateRatings(List<Rating> ratings)
@@ -49,7 +89,14 @@ namespace Library.Core.Model
         public void RecalculateAverageRating(List<Rating> ratings)
         {
             PopulateRatings(ratings);
-            AverageRating = ratings.Select(r => r.Value).Sum()/ratings.Count;
+
+            var dividedNumber = 1;
+            if(ratings.Count > 0)
+            {
+                dividedNumber = ratings.Count;
+            }
+
+            AverageRating = ratings.Select(r => r.Value).Sum()/dividedNumber;
         }
     }
 }

@@ -96,7 +96,7 @@ namespace Library.Controllers
                 return NotFound();
             }
 
-            return Ok();
+            return Ok(books);
         }
 
         [HttpGet("{bookId}/Ratings/{ratingId}")]
@@ -109,7 +109,7 @@ namespace Library.Controllers
                 return NotFound();
             }
 
-            return Ok();
+            return Ok(books);
         }
 
         [HttpDelete("{bookId}/Ratings/{ratingId}")]

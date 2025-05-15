@@ -2,6 +2,7 @@
 using Library.Application.Services.Interfaces;
 using Library.Core.Model;
 using Library.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,6 @@ namespace Library.Application.Services.Implementations
         public int Create(CreateBookInputModel model)
         {
             var book = new Book(
-                model.Id,
                 model.Title, 
                 model.Description, 
                 model.Author, 
@@ -34,6 +34,7 @@ namespace Library.Application.Services.Implementations
                 );
 
             _dbContext.Books.Add( book );
+            _dbContext.SaveChanges();
 
             return book.Id;
         }
@@ -43,6 +44,7 @@ namespace Library.Application.Services.Implementations
             var book = _dbContext.Books.SingleOrDefault( book => book.Id == id );
 
             book.Desativar();
+            _dbContext.SaveChanges();
         }
 
         public List<BookViewModel> GetAll()
@@ -58,7 +60,8 @@ namespace Library.Application.Services.Implementations
                     b.PublicationYear,
                     b.PageCount,
                     b.CoverImage,
-                    b.AverageRating
+                    b.AverageRating,
+                    b.Ratings
                     ))
                 .ToList();
 
@@ -67,7 +70,9 @@ namespace Library.Application.Services.Implementations
 
         public BookViewModel GetById(int id)
         {
-            var book = _dbContext.Books.SingleOrDefault(book => book.Id == id);
+            var book = _dbContext.Books
+                .Include(b => b.Ratings)
+                .SingleOrDefault(book => book.Id == id);
 
             if (book == null) return null;
 
@@ -81,7 +86,8 @@ namespace Library.Application.Services.Implementations
                 book.PublicationYear,
                 book.PageCount,
                 book.CoverImage,
-                book.AverageRating);
+                book.AverageRating,
+                book.Ratings);
 
             return bookView;
         }
@@ -103,7 +109,8 @@ namespace Library.Application.Services.Implementations
                 b.PublicationYear,
                 b.PageCount,
                 b.CoverImage,
-                b.AverageRating)).ToList();
+                b.AverageRating,
+                b.Ratings)).ToList();
 
             return booksViewModel;
         }
@@ -112,13 +119,20 @@ namespace Library.Application.Services.Implementations
         {
             var book = _dbContext.Books.SingleOrDefault(book => book.Id == model.Id);
 
-            book.Update(model.Title, model.Category);
+            book.Update(model.Title, model.Description, model.Author, model.ISBN, model.Publisher, model.Category, model.PublicationYear, model.PageCount, model.Ativo);
+            _dbContext.SaveChanges();
         }
 
         #region Ratings
         
         public void CreateRating(CreateRatingInputModel model)
         {
+            var userExists = _dbContext.Users.Any(u => u.Id == model.IdUser);
+            if (!userExists)
+            {
+                throw new Exception("O usuário informado não foi encontrado.");
+            }
+
             var rating = new Rating(
                 model.Value,
                 model.Description,
@@ -132,18 +146,24 @@ namespace Library.Application.Services.Implementations
 
             List<Rating> ratings = _dbContext.Ratings.Where(r => r.IdBook == book.Id).ToList();
 
+            ratings.Add(rating);
+
             book.RecalculateAverageRating(ratings);
+            _dbContext.SaveChanges();
         }
 
         public List<RatingViewModel> GetRatings(int bookId)
         {
-            var ratings = _dbContext.Ratings.Where(r => r.IdBook == bookId)
+            var ratings = _dbContext.Ratings
+                .Where(r => r.IdBook == bookId)
+                .Include(r => r.User)
                 .Select(r =>
                     new RatingViewModel(
                         r.Value,
                         r.Description,
                         r.IdUser,
-                        r.IdBook
+                        r.IdBook,
+                        r.User.Name
                     )
                 ).ToList();
 
@@ -158,7 +178,8 @@ namespace Library.Application.Services.Implementations
                         r.Value,
                         r.Description,
                         r.IdUser,
-                        r.IdBook
+                        r.IdBook,
+                        r.User.Name
                     )
                 ).ToList();
 
@@ -170,6 +191,7 @@ namespace Library.Application.Services.Implementations
             var rating = _dbContext.Ratings.SingleOrDefault(r => r.Id == ratingId && r.IdBook == bookId);
 
             rating.Desativar();
+            _dbContext.SaveChanges();
         }
 
         #endregion

@@ -9,7 +9,7 @@ namespace Library.Application.DTOs.Book
 {
     public class BookViewModel
     {
-        public BookViewModel(string title, string description, string author, string iSBN, string publisher, string category, int publicationYear, int pageCount, string coverImage, decimal averageRating)
+        public BookViewModel(string title, string description, string author, string iSBN, string publisher, string category, int publicationYear, int pageCount, string coverImage, decimal averageRating, List<Rating> ratings)
         {
             Title = title;
             Description = description;
@@ -21,6 +21,7 @@ namespace Library.Application.DTOs.Book
             PageCount = pageCount;
             CoverImage = coverImage;
             AverageRating = averageRating;
+            Ratings = ratings;
         }
 
         public string Title { get; private set; }
@@ -34,5 +35,6 @@ namespace Library.Application.DTOs.Book
         // Adicionar os bytes criptografados quando for utilizar a CoverImage
         public string CoverImage { get; private set; }
         public decimal AverageRating { get; private set; }
+        public List<Rating> Ratings { get; private set; }
     }
 }
