@@ -1,6 +1,7 @@
-using Library.Application.Services.Implementations;
-using Library.Application.Services.Interfaces;
+using Library.Application.Commands.Book.CreateBook;
+using Library.Application.Commands.User.CreateUser;
 using Library.Infrastructure.Persistence;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -19,8 +21,8 @@ builder.Services.AddDbContext<LibraryDbContext>(opt => opt
     .EnableSensitiveDataLogging()
 );
 
-builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateBookCommand>());
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateUserCommand>());
 
 var app = builder.Build();
 

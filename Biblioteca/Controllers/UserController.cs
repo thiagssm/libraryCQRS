@@ -1,9 +1,14 @@
-﻿using Library.Application.DTOs.User;
-using Library.Application.Services.Implementations;
-using Library.Application.Services.Interfaces;
+﻿using Library.Application.Commands.User.CreateUser;
+using Library.Application.Commands.User.DeleteUser;
+using Library.Application.Commands.User.UpdateUser;
+using Library.Application.DTOs.User;
+using Library.Application.Queries.User.GetAllUsers;
+using Library.Application.Queries.User.GetUserById;
 using Library.Core.Model;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Library.Controllers
 {
@@ -11,16 +16,17 @@ namespace Library.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly IMediator _mediator;
+        public UserController(IMediator mediator)
         {
-            _userService = userService;
+            _mediator = mediator;
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var user = _userService.GetById(id);
+            var query = new GetUserByIdQuery(id);
+            var user = await _mediator.Send(query);
 
             if (user == null)
             {
@@ -31,9 +37,10 @@ namespace Library.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var users = _userService.GetAll();
+            var query = new GetAllUsersQuery();
+            var users = await _mediator.Send(query);
 
             if (users == null)
             {
@@ -44,35 +51,28 @@ namespace Library.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] CreateUserInputModel model)
+        public async Task<IActionResult> Post([FromBody] CreateUserCommand command)
         {
-            var userId = _userService.Create(model);
+            var userId = await _mediator.Send(command);
 
-            return CreatedAtAction(nameof(GetById), new { id = userId }, model);
+            return CreatedAtAction(nameof(GetById), new { id = userId }, command);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] UpdateUserInputModel model)
+        public async Task<IActionResult> Put(int id, [FromBody] UpdateUserCommand command)
         {
-            _userService.Update(model);
+            await _mediator.Send(command);
 
             return NoContent();
         }
 
-        [HttpPut("{id}/login")]
-        public IActionResult Login(int id, [FromBody] LoginModel model)
-        {
-            _userService.Login(model);
-
-            return Ok();
-        }
-
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            _userService.Delete(id);
+            var command = new DeleteUserCommand(id);
+            await _mediator.Send(command);
 
-            return Ok();
+            return NoContent();
         }
     }
 }
