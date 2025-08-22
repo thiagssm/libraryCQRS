@@ -1,6 +1,9 @@
 using Library.Application.Commands.Book.CreateBook;
+using Library.Application.Commands.Book.Rating.CreateRating;
 using Library.Application.Commands.User.CreateUser;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
+using Library.Infrastructure.Persistence.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,8 +24,13 @@ builder.Services.AddDbContext<LibraryDbContext>(opt => opt
     .EnableSensitiveDataLogging()
 );
 
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateBookCommand>());
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateUserCommand>());
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<CreateRatingCommand>());
 
 var app = builder.Build();
 

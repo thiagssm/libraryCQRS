@@ -1,5 +1,7 @@
 ﻿using Library.Application.DTOs.Book;
 using Library.Infrastructure.Persistence;
+using Library.Infrastructure.Persistence.Repositories;
+using Library.Core.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,17 +14,18 @@ namespace Library.Application.Queries.Book.GetAllBooks
 {
     public class GetAllBooksQueryHandler : IRequestHandler<GetAllBooksQuery, List<BookViewModel>>
     {
-        private readonly LibraryDbContext _dbContext;
-        public GetAllBooksQueryHandler(LibraryDbContext dbContext)
+        private readonly IBookRepository _bookRepository;
+        public GetAllBooksQueryHandler(IBookRepository repository)
         {
-            _dbContext = dbContext;
+            _bookRepository = repository;
 
         }
 
         public async Task<List<BookViewModel>> Handle(GetAllBooksQuery request, CancellationToken cancellationToken)
         {
             {
-                var booksViewModel = await _dbContext.Books
+                var books = await _bookRepository.GetAllAsync();
+                var booksViewModel = books
                     .Select(b => new BookViewModel(
                         b.Title,
                         b.Description,
@@ -36,7 +39,7 @@ namespace Library.Application.Queries.Book.GetAllBooks
                         b.AverageRating,
                         b.Ratings
                         ))
-                    .ToListAsync();
+                    .ToList();
 
                 return booksViewModel;
             }

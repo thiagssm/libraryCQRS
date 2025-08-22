@@ -78,7 +78,6 @@ namespace Library.Core.Model
             {
                 Ativo = ativo.Value;
             }
-
         }
 
         public void PopulateRatings(List<Rating> ratings)

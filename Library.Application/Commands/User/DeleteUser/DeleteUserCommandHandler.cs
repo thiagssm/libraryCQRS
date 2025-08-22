@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,19 +13,19 @@ namespace Library.Application.Commands.User.DeleteUser
 {
     public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Unit>
     {
-        private readonly LibraryDbContext _dbContext;
-        public DeleteUserCommandHandler(LibraryDbContext dbContext)
+        private readonly IUserRepository _userRepository;
+        public DeleteUserCommandHandler(IUserRepository repository)
         {
-            _dbContext = dbContext;
+            _userRepository = repository;
         }
 
         public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _dbContext.Users.SingleOrDefaultAsync(u => u.Id == request.Id);
+            var user = await _userRepository.GetByIdAsync(request.Id);
 
             user.Desativar();
 
-            await _dbContext.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
 
             return Unit.Value;
         }

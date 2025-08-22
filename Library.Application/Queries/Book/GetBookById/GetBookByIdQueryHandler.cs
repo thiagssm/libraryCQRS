@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Library.Application.DTOs.Book;
 using Library.Core.Model;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -14,19 +15,15 @@ namespace Library.Application.Queries.Book.GetBookById
 {
     public class GetBookByIdQueryHandler : IRequestHandler<GetBookByIdQuery, BookViewModel>
     {
-        private readonly LibraryDbContext _dbContext;
-        public GetBookByIdQueryHandler(LibraryDbContext dbContext)
+        private readonly IBookRepository _bookRepository;
+        public GetBookByIdQueryHandler(IBookRepository repository)
         {
-            _dbContext = dbContext;
+            _bookRepository = repository;
         }
 
         public async Task<BookViewModel> Handle(GetBookByIdQuery request, CancellationToken cancellationToken)
         {
-            var book = await _dbContext.Books
-                .Include(b => b.Ratings)
-                .SingleOrDefaultAsync(book => book.Id == request.Id);
-
-            if (book == null) return null;
+            var book = await _bookRepository.GetByIdAsync(request.Id);
 
             var bookView = new BookViewModel(
                 book.Title,
@@ -39,7 +36,8 @@ namespace Library.Application.Queries.Book.GetBookById
                 book.PageCount,
                 book.CoverImage,
                 book.AverageRating,
-                book.Ratings);
+                book.Ratings
+            );
 
             return bookView;
         }

@@ -1,4 +1,5 @@
 ﻿using Library.Core.Model;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,10 @@ namespace Library.Application.Commands.Book.CreateBook
 {
     public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, int>
     {
-        private readonly LibraryDbContext _dbContext;
-        public CreateBookCommandHandler(LibraryDbContext dbContext)
+        private readonly IBookRepository _bookRepository;
+        public CreateBookCommandHandler(IBookRepository repository)
         {
-            _dbContext = dbContext;
+            _bookRepository = repository;
         }
 
         public async Task<int> Handle(CreateBookCommand request, CancellationToken cancellationToken)
@@ -31,9 +32,8 @@ namespace Library.Application.Commands.Book.CreateBook
                 request.PageCount,
                 request.CoverImage
             );
-
-            await _dbContext.Books.AddAsync(book);
-            await _dbContext.SaveChangesAsync();
+            
+            await _bookRepository.AddAsync(book);
 
             return book.Id;
         }

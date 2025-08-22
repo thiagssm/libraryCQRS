@@ -1,4 +1,5 @@
 ﻿using Library.Core.Model;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,10 @@ namespace Library.Application.Commands.User.CreateUser
 {
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, int>
     {
-        private readonly LibraryDbContext _dbContext;
-        public CreateUserCommandHandler(LibraryDbContext dbContext)
+        private readonly IUserRepository _userRepository;
+        public CreateUserCommandHandler(IUserRepository repository)
         {
-            _dbContext = dbContext;
+            _userRepository = repository;
         }
 
         public async Task<int> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -26,8 +27,7 @@ namespace Library.Application.Commands.User.CreateUser
                 request.Password
             );
 
-            await _dbContext.Users.AddAsync(user);
-            await _dbContext.SaveChangesAsync();
+            await _userRepository.AddAsync(user);
 
             return user.Id;
         }

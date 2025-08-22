@@ -1,4 +1,5 @@
 ﻿using Library.Application.DTOs.User;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,18 +13,20 @@ namespace Library.Application.Queries.User.GetAllUsers
 {
     public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, List<UserViewModel>>
     {
-        private readonly LibraryDbContext _dbContext;
-        public GetAllUsersQueryHandler(LibraryDbContext dbContext)
+        private readonly IUserRepository _userRepository;
+        public GetAllUsersQueryHandler(IUserRepository repository)
         {
-            _dbContext = dbContext;
+            _userRepository = repository;
         }
         public async Task<List<UserViewModel>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var usersViewModel = await _dbContext.Users.Select(u => new UserViewModel
+            var users = await _userRepository.GetAllAsync();
+
+            var usersViewModel = users.Select(u => new UserViewModel
             (
                 u.Name,
                 u.Email
-            )).ToListAsync();
+            )).ToList();
 
             return usersViewModel;
         }

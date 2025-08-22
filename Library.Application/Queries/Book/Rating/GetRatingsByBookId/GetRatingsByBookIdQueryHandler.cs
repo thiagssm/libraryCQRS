@@ -1,4 +1,5 @@
 ﻿using Library.Application.DTOs.Book;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,16 +13,16 @@ namespace Library.Application.Queries.Book.Rating.GetRatingsByBookId
 {
     public class GetRatingsByBookIdQueryHandler : IRequestHandler<GetRatingsByBookIdQuery, List<RatingViewModel>>
     {
-        private readonly LibraryDbContext _dbContext;
-        public GetRatingsByBookIdQueryHandler(LibraryDbContext dbContext)
+        private readonly IRatingRepository _ratingRepository;
+        public GetRatingsByBookIdQueryHandler(IRatingRepository repository)
         {
-            _dbContext = dbContext;
+            _ratingRepository = repository;
         }
         public async Task<List<RatingViewModel>> Handle(GetRatingsByBookIdQuery request, CancellationToken cancellationToken)
         {
-            var ratings = await _dbContext.Ratings
-                .Where(r => r.IdBook == request.BookId)
-                .Include(r => r.User)
+            var ratings = await _ratingRepository.GetByBookIdAsync(request.BookId);
+
+            var ratingsViewModels = ratings
                 .Select(r =>
                     new RatingViewModel(
                         r.Value,
@@ -30,9 +31,9 @@ namespace Library.Application.Queries.Book.Rating.GetRatingsByBookId
                         r.IdBook,
                         r.User.Name
                     )
-                ).ToListAsync();
+                ).ToList();
 
-            return ratings;
+            return ratingsViewModels;
         }
     }
 }

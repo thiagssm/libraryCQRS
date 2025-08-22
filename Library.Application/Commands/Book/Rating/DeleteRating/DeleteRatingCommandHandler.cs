@@ -1,4 +1,5 @@
 ﻿using Library.Core.Model;
+using Library.Core.Repositories;
 using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,17 +13,18 @@ namespace Library.Application.Commands.Book.Rating.DeleteRating
 {
     public class DeleteRatingCommandHandler : IRequestHandler<DeleteRatingCommand, Unit>
     {
-        private readonly LibraryDbContext _dbContext;
-        public DeleteRatingCommandHandler(LibraryDbContext dbContext)
+        private readonly IRatingRepository _ratingRepository;
+        public DeleteRatingCommandHandler(IRatingRepository repository)
         {
-            _dbContext = dbContext;
+            _ratingRepository = repository;
         }
+
         public async Task<Unit> Handle(DeleteRatingCommand request, CancellationToken cancellationToken)
         {
-            var rating = await _dbContext.Ratings.SingleOrDefaultAsync(r => r.Id == request.Id && r.IdBook == request.BookId);
+            var rating = await _ratingRepository.GetByIdAsync(request.Id);
 
             rating.Desativar();
-            await _dbContext.SaveChangesAsync();
+            await _ratingRepository.SaveChangesAsync();
 
             return Unit.Value;
         }

@@ -1,4 +1,5 @@
-﻿using Library.Infrastructure.Persistence;
+﻿using Library.Core.Repositories;
+using Library.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,18 +12,17 @@ namespace Library.Application.Commands.Book.DeleteBook
 {
     public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand, Unit>
     {
-        private readonly LibraryDbContext _dbContext;
-        public DeleteBookCommandHandler(LibraryDbContext dbContext)
+        private readonly IBookRepository _bookRepository;
+        public DeleteBookCommandHandler(IBookRepository repository)
         {
-            _dbContext = dbContext;
+            _bookRepository = repository;
         }
         public async Task<Unit> Handle(DeleteBookCommand request, CancellationToken cancellationToken)
         {
-            var book = await _dbContext.Books.SingleOrDefaultAsync(book => book.Id == request.Id);
-
+            var book = await _bookRepository.GetByIdAsync(request.Id);
             book.Desativar();
 
-            await _dbContext.SaveChangesAsync();
+            await _bookRepository.SaveChangesAsync();
 
             return Unit.Value;
         }

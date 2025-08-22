@@ -1,5 +1,6 @@
 ﻿using Library.Core.Model;
 using Library.Infrastructure.Persistence;
+using Library.Infrastructure.Persistence.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,19 +13,16 @@ namespace Library.Application.Commands.Book.Rating.CreateRating
 {
     public class CreateRatingCommandHandler : IRequestHandler<CreateRatingCommand, int>
     {
-        private readonly LibraryDbContext _dbContext;
-        public CreateRatingCommandHandler(LibraryDbContext dbContext)
+        private readonly RatingRepository _ratingRepository;
+        private readonly BookRepository _bookRepository;
+        public CreateRatingCommandHandler(RatingRepository repository,BookRepository bookRepository)
         {
-            _dbContext = dbContext;
+            _ratingRepository = repository;
+            _bookRepository = bookRepository;
         }
 
         public async Task<int> Handle(CreateRatingCommand request, CancellationToken cancellationToken)
         {
-            var userExists = await _dbContext.Users.AnyAsync(u => u.Id == request.IdUser);
-            if (!userExists)
-            {
-                throw new Exception("O usuário informado não foi encontrado.");
-            }
 
             var rating = new Library.Core.Model.Rating(
                 request.Value,
@@ -33,17 +31,17 @@ namespace Library.Application.Commands.Book.Rating.CreateRating
                 request.IdBook
             );
 
-            _dbContext.Ratings.Add(rating);
+            await _ratingRepository.AddAsync(rating);
 
-            var book = await _dbContext.Books.SingleOrDefaultAsync(book => book.Id == request.IdBook);
+            var book = await _bookRepository.GetByIdAsync(request.IdBook);
 
-            List<Library.Core.Model.Rating> ratings = _dbContext.Ratings.Where(r => r.IdBook == book.Id).ToList();
+            List<Library.Core.Model.Rating> ratings = await _ratingRepository.GetByBookIdAsync(book.Id);
 
             ratings.Add(rating);
 
             book.RecalculateAverageRating(ratings);
 
-            await _dbContext.SaveChangesAsync();
+            await _ratingRepository.SaveChangesAsync();
 
             return rating.Id;
         }
